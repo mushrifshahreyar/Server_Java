@@ -1,10 +1,7 @@
 import java.io.BufferedReader;
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
@@ -13,131 +10,64 @@ import java.util.Scanner;
 
 public class server {
     public static void main(String[] args) {
+        ServerSocket serverSocket = null;
         try {
-            ServerSocket serverSocket = new ServerSocket(8080);
-            System.out.println("Listening to port 8080");
+            System.out.println("\n\nServer Started...\n");
+            
+            //Creating server object and starts listening to port mentioned
+            serverSocket = new ServerSocket(8080);
+
+            System.out.println("Listening to port : 8080\n");
 
             while (true) {
+                //Socket is created
                 Socket connection = serverSocket.accept();
-                System.out.println("Connection created");
+                System.out.println("\nConnection created\n");
 
-                InputStreamReader inputStreamReader = new InputStreamReader(connection.getInputStream());
-                
-                Thread t = new HandleClient(connection,inputStreamReader);
-                // BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-
-                // String filename = readrequest(bufferedReader);
-
-                // String Nresponse;
-                // if(filename.equals("getmoved.html")) {
-                //     System.out.println("reached here===========");
-                //     Nresponse = "HTTP/1.1 302 Moved Permanently \r\n Location: http://127.0.0.1/Q1.html \r\n\r\n";    
-                // }
-                // else {
-                //     String response = createresponce(filename);
-                    
-                //     if(response == null) {
-                //         Nresponse = "HTTP/1.1 404 NOT FOUND \r\n\r\n " + "Page not found";    
-                //     }
-                //     else {
-                //         Nresponse = "HTTP/1.1 200 OK \r\n\r\n " + response;
-                //     }
-                // }
-                // connection.getOutputStream().write(Nresponse.getBytes("UTF-8"));
-                
-                // connection.close();
-
-                t.start();
+                //Thread for handling multiple client requests and its started which will eventually run "RUN" program in the class
+                HandleClient handleClient_Thread = new HandleClient(connection);
+                handleClient_Thread.start();
                 
             }
+
         } catch (SocketException s) {
             s.printStackTrace();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
-
-    private static String createresponce(String filename) {
-        String response = "";
-        try {
-            File file = new File(filename);
-            Scanner scanner = new Scanner(file);
-            while(scanner.hasNextLine()) {
-                response += scanner.nextLine();
-            }
-            scanner.close();
-        }
-        catch(Exception e) {
-            e.printStackTrace();
-        }
-        if(response.isEmpty()) {
-            System.out.println("Empty");
-            response = null;
-        }
-        return response;
-    }
-
-    public static String readrequest(BufferedReader bufferedReader) {
-        String filename = "";
-        try {
-            String text = bufferedReader.readLine();
-            while(text != null && !text.isEmpty()) {
-                if(text.contains("GET")) {
-                    int start = text.indexOf("/");
-                    int i = start;
-                    for(;i < text.length() ; ++i) {
-                        char temp = text.charAt(i);
-                        if(temp == ' ') {
-                            break;
-                        }
-                    }
-                    if(start+1 == i) {
-                        filename = "index.html";
-                    }
-                    else {
-                        filename = text.substring(start+1, i);
-                        System.err.println("Getmoved");
-                    }
-                }
-                text = bufferedReader.readLine();
-            }
-
-        } 
-        catch (IOException e) {
-            e.printStackTrace();
-        }
-        
-        return filename;
-    }
 }
 
 class HandleClient extends Thread {
-    final InputStreamReader inputStreamReader;
     
     final Socket socket;
 
-    public HandleClient(Socket socket, InputStreamReader inputStreamReader) {
+    public HandleClient(Socket socket) {
         this.socket = socket;
-        this.inputStreamReader = inputStreamReader;
     }
 
     @Override
     public void run() {
-        String fileName;
-
+        String fileName = null;
+        
         while(true) {
             try {
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
-                fileName = readrequest(bufferedReader);
-                System.out.println(fileName);
-                String filename = readrequest(bufferedReader);
 
+                InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
+                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+                
+                //Readrequest is a function for reading the incoming request and will return the file name mentioned in the request
+                fileName = readrequest(bufferedReader);
+                System.out.println("\nFile name requesting is : " + fileName);
+                
                 String Nresponse;
-                if(filename.equals("getmoved.html")) {
-                    Nresponse = "HTTP/1.1 302 Moved Permanently \r\n Location: http://127.0.0.1/Q1.html \r\n\r\n";    
+
+                if(fileName.equals("getmoved.html")) {
+                    System.out.println("\nRedirecting to Google\n");
+                    Nresponse = "HTTP/1.1 301 Moved Permanently\r\nLocation: https://google.com/\r\n\r\n";    
                 }
                 else {
-                    String response = createresponce(filename);
+                    String response = createresponce(fileName);
                     
                     if(response == null) {
                         Nresponse = "HTTP/1.1 404 NOT FOUND \r\n\r\n " + "Page not found";    
@@ -146,8 +76,12 @@ class HandleClient extends Thread {
                         Nresponse = "HTTP/1.1 200 OK \r\n\r\n " + response;
                     }
                 }
+
                 socket.getOutputStream().write(Nresponse.getBytes("UTF-8"));
                 
+                socket.close();
+
+                break;
             }
             catch(Exception e) {
                 e.printStackTrace();
@@ -155,17 +89,19 @@ class HandleClient extends Thread {
         }
     }
 
-    public static String readrequest(BufferedReader bufferedReader) {
+    private static String readrequest(BufferedReader bufferedReader) {
         
+        System.out.println("Reading Request...\n");
         String filename = "";
+        String line;
         try {
-            String text = bufferedReader.readLine();
-            while(text != null && !text.isEmpty()) {
-                if(text.contains("GET")) {
-                    int start = text.indexOf("/");
+            line = bufferedReader.readLine();
+            while(line != null && !line.isEmpty()) {
+                if(line.contains("GET")) {
+                    int start = line.indexOf("/");
                     int i = start;
-                    for(;i < text.length() ; ++i) {
-                        char temp = text.charAt(i);
+                    for(;i < line.length() ; ++i) {
+                        char temp = line.charAt(i);
                         if(temp == ' ') {
                             break;
                         }
@@ -174,22 +110,30 @@ class HandleClient extends Thread {
                         filename = "index.html";
                     }
                     else {
-                        filename = text.substring(start+1, i);
-                        System.err.println("Getmoved");
+                        filename = line.substring(start+1, i);
                     }
                 }
-                text = bufferedReader.readLine();
+                
+                
+                System.out.println(line);
+                
+                line = bufferedReader.readLine();
             }
-
+            
         } 
         catch (IOException e) {
             e.printStackTrace();
+            System.out.println("Error");
+            return null;
         }
-        
-        return filename;
+        return filename;        
     }
 
     private static String createresponce(String filename) {
+        if(filename == null) {
+            return null;
+        }
+        
         String response = "";
         try {
             File file = new File(filename);
@@ -200,11 +144,14 @@ class HandleClient extends Thread {
             scanner.close();
         }
         catch(Exception e) {
+            System.out.println("\n****File not found***\n");
+            
             e.printStackTrace();
+            
+            return null;
         }
         if(response.isEmpty()) {
-            System.out.println("Empty");
-            response = null;
+            return null;
         }
         return response;
     }
