@@ -33,5 +33,16 @@ Testing:
 
         2. python3 client_request.py
 
+    urls and expected output:
+
+        http://localhost/               -   returns index.html page
+
+        http://localhost/page1.html     -   returns page1.html page
+
+        http://localhost/page2.html     -   returns page2.html page
+
+        http://localhost/getmoved.html  -   Redirects to https://google.com/
+
+        http://localhost/page3.html     -   Page is not found hence returns 404 error
 
 Thank you
