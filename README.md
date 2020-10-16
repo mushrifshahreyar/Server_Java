@@ -21,7 +21,7 @@ Functions included:
 
     200: OK, if server finds the file it responds with the content passed in the request.
 
-    301: Permanently Moved, if it detects the file name passed is "getmoved.html" it redirects the page to "https://google.com/
-    
+    301: Permanently Moved, if server detects the file name passed is "getmoved.html" it redirects the page to "https://google.com/"
+
 
 Thank you
