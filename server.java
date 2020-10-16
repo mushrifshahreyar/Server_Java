@@ -10,21 +10,23 @@ import java.util.Scanner;
 
 public class server {
     public static void main(String[] args) {
+        final int default_port = 4040;
+
         ServerSocket serverSocket = null;
         try {
             System.out.println("\n\nServer Started...\n");
             
             //Creating server object and starts listening to port mentioned
-            serverSocket = new ServerSocket(8080);
+            serverSocket = new ServerSocket(default_port);
 
-            System.out.println("Listening to port : 8080\n");
+            System.out.println("Listening to port : " + default_port +"\n");
 
             while (true) {
                 //Socket is created
                 Socket connection = serverSocket.accept();
                 System.out.println("\nConnection created\n");
 
-                //Thread for handling multiple client requests and its started which will eventually run "RUN" program in the class
+                //Thread for handling multiple client requests
                 HandleClient handleClient_Thread = new HandleClient(connection);
                 handleClient_Thread.start();
                 
@@ -50,44 +52,41 @@ class HandleClient extends Thread {
     public void run() {
         String fileName = null;
         
-        while(true) {
-            try {
+        try {
 
-                InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
-                BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            InputStreamReader inputStreamReader = new InputStreamReader(socket.getInputStream());
+            BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+            
+            //Readrequest is a function for reading the incoming request and will return the file name mentioned in the request
+            fileName = readrequest(bufferedReader);
+            System.out.println("\nFile name requesting is : " + fileName);
+            
+            String Nresponse;
+            
+            if(fileName.equals("getmoved.html")) {
+                System.out.println("\nRedirecting to Google\n");
+                Nresponse = "HTTP/1.1 301 Moved Permanently\r\nLocation: https://google.com/\r\n\r\n";    
+            }
+            else {
+                String response = createresponce(fileName);
                 
-                //Readrequest is a function for reading the incoming request and will return the file name mentioned in the request
-                fileName = readrequest(bufferedReader);
-                System.out.println("\nFile name requesting is : " + fileName);
-                
-                String Nresponse;
-
-                if(fileName.equals("getmoved.html")) {
-                    System.out.println("\nRedirecting to Google\n");
-                    Nresponse = "HTTP/1.1 301 Moved Permanently\r\nLocation: https://google.com/\r\n\r\n";    
+                if(response == null) {
+                    Nresponse = "HTTP/1.1 404 NOT FOUND \r\n\r\n " + "Page not found";    
                 }
                 else {
-                    String response = createresponce(fileName);
-                    
-                    if(response == null) {
-                        Nresponse = "HTTP/1.1 404 NOT FOUND \r\n\r\n " + "Page not found";    
-                    }
-                    else {
-                        Nresponse = "HTTP/1.1 200 OK \r\n\r\n " + response;
-                    }
+                    Nresponse = "HTTP/1.1 200 OK \r\n\r\n " + response;
                 }
-
-                socket.getOutputStream().write(Nresponse.getBytes("UTF-8"));
-                
-                socket.close();
-
-                break;
             }
-            catch(Exception e) {
-                e.printStackTrace();
-            }
+            socket.getOutputStream().write(Nresponse.getBytes("UTF-8"));
+            
+            socket.close();
+            
+        }
+        catch(Exception e) {
+            e.printStackTrace();
         }
     }
+    
 
     private static String readrequest(BufferedReader bufferedReader) {
         
@@ -144,9 +143,9 @@ class HandleClient extends Thread {
             scanner.close();
         }
         catch(Exception e) {
-            System.out.println("\n****File not found***\n");
+            System.out.println("\n***File not found***\n");
             
-            e.printStackTrace();
+            // e.printStackTrace();
             
             return null;
         }
