@@ -29,7 +29,9 @@ Testing:
 
     How to run:
 
-    1. python3 client_request.py
+        1. Open Terminal 
+
+        2. python3 client_request.py
 
 
 Thank you
