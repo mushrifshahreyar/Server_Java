@@ -15,8 +15,8 @@ How to run in linux:
 
 
 Functions included:
-    404: Page not found, Server doesnt find the file.
-    200: OK, if server finds the file it responds with the content passed in the request.
-    301: Permanently Moved, if it detects the file name passed is "getmoved.html" it redirects the page to "https://google.com/
+    404: Page not found, Server doesnt find the file. \n
+    200: OK, if server finds the file it responds with the content passed in the request. \n
+    301: Permanently Moved, if it detects the file name passed is "getmoved.html" it redirects the page to "https://google.com/ \n
 
 Thank you
