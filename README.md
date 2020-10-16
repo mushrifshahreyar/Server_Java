@@ -1,6 +1,7 @@
 Server implementation using Java
 
 How to run in linux:
+
     1. Open terminal
 
     2. Type the command:
