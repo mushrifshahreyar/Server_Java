@@ -1,4 +1,4 @@
-Server implementation using Java
+<h3 align=center>Server implementation using Java</h3>
 
 How to run in linux:
 
