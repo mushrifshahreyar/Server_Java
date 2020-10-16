@@ -23,5 +23,13 @@ Functions included:
 
     301: Permanently Moved, if server detects the file name passed is "getmoved.html" it redirects the page to "https://google.com/"
 
+Testing:
+
+    Python script for testing is also included. Scripts sends multiple client requests and checks whether the server is capable of handling it.
+
+    How to run:
+
+    1. python3 client_request.py
+
 
 Thank you
